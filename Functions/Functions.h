@@ -58,6 +58,8 @@ public:
 	virtual int getClass() {
 		return this->cl;
 	}
+	virtual void deleteMark(int t) {}
+	virtual void changeMark(int t, int mark) {}
 };
 
 class FUNCTIONS_API Student : public Child {
@@ -70,6 +72,43 @@ public:
 	~Student() {}
 	void pushMark(int mark, std::wstring date) {
 		marks.push_back(std::make_pair(mark, wstringDateToInt(date)));
+	}
+	void deleteMark(int t) {
+		time_t old = (time_t) t;
+		tm* q = new tm{ 0 };
+		gmtime_s(q, &old);
+		for (std::vector<std::pair<double, int>>::const_iterator i = marks.begin(); i != marks.end(); ++i) {
+			old = (time_t) (*i).second;
+			tm* temp = new tm{ 0 };
+			gmtime_s(temp, &old);
+			if (temp->tm_year == q->tm_year && temp->tm_mon == q->tm_mon && temp->tm_mday == q->tm_mday) {
+				marks.erase(i);
+				break;
+			}
+			delete temp;
+		}
+		delete q;
+	}
+	void changeMark(int t, int mark) {
+		time_t old = (time_t)t;
+		tm* q = new tm{ 0 };
+		gmtime_s(q, &old);
+		for (std::vector<std::pair<double, int>>::iterator i = marks.begin(); i != marks.end(); ++i) {
+			old = (time_t)(*i).second;
+			tm* temp = new tm{0};
+			gmtime_s(temp, &old);
+			if (temp->tm_year == q->tm_year && temp->tm_mon == q->tm_mon && temp->tm_mday == q->tm_mday) {
+				(*i).first = mark;
+				(*i).second = t;
+				delete q, temp;
+				return;
+			}
+			delete temp;
+		}
+		std::wstringstream tmp;
+		tmp << std::put_time(q, L"%Y-%m-%d");
+		this->pushMark(mark, tmp.str());
+		delete q;
 	}
 };
 
@@ -132,10 +171,11 @@ public:
 		file.close();
 	};
 	~DB() {
-		for (std::map<int, Child*>::iterator it = db->begin(); it != db->end(); ++it) {
+		for (std::map<int, Child*>::const_iterator it = db->begin(); it != db->end(); ++it) {
 			delete it->second;
 		}
 		delete db;
+		delete viborka;
 	}
 	const std::map<int, Child*>& getDb() const {
 		return *db;
@@ -146,20 +186,38 @@ public:
 	const std::map<int, std::wstring>& getClasses() const {
 		return classes;
 	};
-	std::map<int, Child*>& getStudentsFromClass(int cl) {
+	const std::map<int, Child*>& getStudentsFromClass(int cl) const {
 		if (cl == 0) {
 			return *db;
 		} else {
-			delete viborka;
-			viborka = new std::map<int, Child*>;
-			for (std::map<int, Child*>::iterator i = db->begin(); i != db->end(); ++i) {
-				if ((*i).second->getClass() == cl) {
-					viborka->insert(std::make_pair((*i).first, (*i).second));
-				}
-			}
 			return *viborka;
 		}
 	};
+	void MakeViborka(int cl) {
+		delete viborka;
+		viborka =  new std::map<int, Child*>;
+		for (std::map<int, Child*>::const_iterator i = db->begin(); i != db->end(); ++i) {
+			if ((*i).second->getClass() == cl) {
+				viborka->insert(std::make_pair((*i).first, (*i).second));
+			}
+		}
+	};
+	void deleteMark(std::wstring name, int t){
+		for (std::map<int, Child*>::const_iterator i = db->begin(); i != db->end(); ++i) {
+			if ((*i).second->getName() == name) {
+				(*i).second->deleteMark(t);
+				break;
+			}
+		}
+	}
+	void changeMark(std::wstring name, int mark, int t) {
+		for (std::map<int, Child*>::const_iterator i = db->begin(); i != db->end(); ++i) {
+			if ((*i).second->getName() == name) {
+				(*i).second->changeMark(t, mark);
+				break;
+			}
+		}
+	}
 };
 
 #endif // !FUNCTIONS_H

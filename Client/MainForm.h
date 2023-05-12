@@ -36,6 +36,7 @@ namespace Client {
 			{
 				delete components;
 			}
+			delete maindb;
 		}
 	private: System::Windows::Forms::DateTimePicker^ dateTimePicker1;
 	protected:
@@ -91,6 +92,7 @@ namespace Client {
 			this->dataGridView1->Name = L"dataGridView1";
 			this->dataGridView1->Size = System::Drawing::Size(765, 350);
 			this->dataGridView1->TabIndex = 2;
+			this->dataGridView1->CellEndEdit += gcnew System::Windows::Forms::DataGridViewCellEventHandler(this, &MainForm::dataGridView1_CellEndEdit);
 			// 
 			// comboBox1
 			// 
@@ -131,7 +133,7 @@ namespace Client {
 		std::map<int, std::wstring> classlist = maindb->getClasses();
 		comboBox1->Items->Add("Все ученики");
 		comboBox1->SelectedIndex = 0;
-		for (std::map<int, std::wstring>::iterator i = classlist.begin(); i != classlist.end(); ++i) {
+		for (std::map<int, std::wstring>::const_iterator i = classlist.begin(); i != classlist.end(); ++i) {
 			comboBox1->Items->Add(msclr::interop::marshal_as<String^>((*i).second));
 			comboBox1->Refresh();
 		}
@@ -156,8 +158,9 @@ namespace Client {
 				c->CellTemplate = td;
 				dataGridView1->Columns->Add(c);
 			}
+			maindb->MakeViborka(selectedclass);
 			std::map<int, Child*> students = maindb->getStudentsFromClass(selectedclass);
-			for (std::map<int, Child*>::iterator i = students.begin(); i != students.end(); ++i) {
+			for (std::map<int, Child*>::const_iterator i = students.begin(); i != students.end(); ++i) {
 				DataGridViewRow^ r = gcnew DataGridViewRow();
 				r->HeaderCell->Value = msclr::interop::marshal_as<String^>(i->second->getName());
 				r->CreateCells(dataGridView1);
@@ -196,5 +199,32 @@ namespace Client {
 		selectedclass = comboBox1->SelectedIndex;
 		dateTimePicker_ValueChanged(dataGridView1, gcnew EventArgs());
 	}
+private: System::Void dataGridView1_CellEndEdit(System::Object^ sender, System::Windows::Forms::DataGridViewCellEventArgs^ e){
+	DateTime dt = dateTimePicker1->Value.Date;
+	tm q = { 0 };
+	q.tm_hour = dt.Hour;
+	q.tm_min = dt.Minute;
+	q.tm_sec = dt.Second;
+	q.tm_year = dt.Year - 1900;
+	q.tm_mon = dt.Month - 1;
+	q.tm_mday = dt.Day;
+	time_t t = _mkgmtime(&q);
+	t += 86400 * e->ColumnIndex;
+	if (this->dataGridView1->Rows[e->RowIndex]->Cells[e->ColumnIndex]->Value == nullptr) {
+		maindb->deleteMark(msclr::interop::marshal_as<std::wstring>(this->dataGridView1->Rows[e->RowIndex]->HeaderCell->Value->ToString()), t);
+	} else {
+		try {
+			System::Int32^ tryint;
+			tryint = System::Convert::ToInt32(this->dataGridView1->Rows[e->RowIndex]->Cells[e->ColumnIndex]->Value);
+			maindb->changeMark(msclr::interop::marshal_as<std::wstring>(this->dataGridView1->Rows[e->RowIndex]->HeaderCell->Value->ToString()), static_cast<int>(tryint), t);
+		}
+		catch (Exception^ ex) {
+			if (this->dataGridView1->Rows[e->RowIndex]->Cells[e->ColumnIndex]->Value != "") {
+				MessageBox::Show("Введите число целого типа");
+			}
+			this->dataGridView1->Rows[e->RowIndex]->Cells[e->ColumnIndex]->Value = L"";
+		}
+	}
+}
 };
 }

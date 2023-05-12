@@ -1,5 +1,12 @@
 ﻿// dllmain.cpp : Определяет точку входа для приложения DLL.
 #include "pch.h"
+#include <crtdbg.h>
+
+struct l {
+    ~l() {
+        _CrtDumpMemoryLeaks();
+    }
+} dbg;
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
