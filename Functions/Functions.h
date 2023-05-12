@@ -17,37 +17,35 @@
 #include <clocale>
 #include <cwctype>
 #include <codecvt>
+#include <iomanip>
+#include <sstream>
+#include <chrono>
+#include <ctime>
+#include <regex>
+#include <algorithm>
 
 using namespace std;
 
-// Этот класс экспортирован из библиотеки DLL
-class FUNCTIONS_API CFunctions {
-public:
-	CFunctions(void);
-	// TODO: добавьте сюда свои методы.
-};
-
-extern FUNCTIONS_API int nFunctions;
-
-FUNCTIONS_API int fnFunctions(void);
-
 const std::locale loc = std::locale(std::locale(), new std::codecvt_utf8<wchar_t>);
 
-class Child {
+int wstringDateToInt(wstring str);
+
+class FUNCTIONS_API Child {
 protected:
 	wstring name;
 	int cl;
-	vector<double> marks;
+	vector<pair<double, int>> marks;
 public:
-	Child() {
-
-	}
-	virtual ~Child() {
-
+	Child() {}
+	virtual ~Child() {}
+	virtual void pushMark(int mark, wstring date) {}
+	virtual wstring getName() { return this->name; }
+	virtual const vector<pair<double, int>>& getMarks() const {
+		return marks;
 	}
 };
 
-class Student : public Child {
+class FUNCTIONS_API Student : public Child {
 private:
 public:
 	Student(wstring name, int cl) {
@@ -55,9 +53,12 @@ public:
 		this->cl = cl;
 	}
 	~Student() {}
+	void pushMark(int mark, wstring date) {
+		marks.push_back(make_pair(mark, wstringDateToInt(date)));
+	}
 };
 
-class Graduated : public Child {
+class FUNCTIONS_API Graduated : public Child {
 private:
 public:
 	Graduated(wstring name, int cl) {
@@ -67,7 +68,7 @@ public:
 	~Graduated() {}
 };
 
-class DB {
+class FUNCTIONS_API DB {
 private:
 	map<int, Child*>* db;
 	map<int, wstring> subject;
@@ -77,29 +78,39 @@ public:
 		db = new map<int, Child*>;
 		int id, klass;
 		wstring str;
-		wifstream file("subjects");
+		wifstream file("subjects.txt");
 		file.imbue(loc);
-		for (; file.is_open() && !file.eof();) {
+		for (; file.is_open() and !file.eof();) {
 			file >> id >> str;
 			subject[id] = str;
 		}
 		file.close();
-		file = wifstream("classes");
+		file = wifstream("classes.txt");
+		file.imbue(loc);
 		for (; file.is_open() && !file.eof();) {
 			file >> id >> str;
 			classes[id] = str;
 		}
 		file.close();
-		file = wifstream("students");
+		file = wifstream("students.txt");
+		file.imbue(loc);
 		for (; file.is_open() && !file.eof();) {
 			file >> id >> str >> klass;
+			str = regex_replace(str, std::wregex(L"_"), L" ");
 			db->insert(make_pair(id, new Student(str, klass)));
 		}
 		file.close();
-		file = wifstream("graduated");
+		file = wifstream("graduated.txt");
+		file.imbue(loc);
 		for (; file.is_open() && !file.eof();) {
 			file >> id >> str >> klass;
 			db->insert(make_pair(id, new Graduated(str, klass))) ;
+		}
+		file.close();
+		file = wifstream("marks.txt");
+		for (; file.is_open() && !file.eof();) {
+			file >> id >> klass >> str;
+			(*db)[id]->pushMark(klass, str);
 		}
 		file.close();
 	};
@@ -109,5 +120,14 @@ public:
 		}
 		delete db;
 	}
+	const map<int, Child*>& getDb() const {
+		return *db;
+	};
+	const map<int, wstring>& getSubject() const {
+		return subject;
+	};
+	const map<int, wstring>& getClasses() const {
+		return classes;
+	};
 };
 

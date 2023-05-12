@@ -5,18 +5,17 @@
 #include "framework.h"
 #include "Functions.h"
 
+#define DEBUG_VERSION
 
-// Пример экспортированной переменной
-FUNCTIONS_API int nFunctions=0;
-
-// Пример экспортированной функции.
-FUNCTIONS_API int fnFunctions(void)
-{
-    return 0;
-}
-
-// Конструктор для экспортированного класса.
-CFunctions::CFunctions()
-{
-    return;
+int wstringDateToInt(wstring str) {
+	tm t{};
+	wistringstream ss(str);
+	ss >> get_time(&t, L"%Y-%m-%d");
+	time_t time_stamp = mktime(&t);
+	#ifdef DEBUG_VERSION
+	ofstream file("debug.txt", ofstream::out);
+	file << time_stamp;
+	file.close();
+	#endif
+	return time_stamp;
 }
