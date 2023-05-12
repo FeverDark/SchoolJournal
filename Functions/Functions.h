@@ -4,11 +4,15 @@
 // использующем данную DLL. Благодаря этому любой другой проект, исходные файлы которого включают данный файл, видит
 // функции FUNCTIONS_API как импортированные из DLL, тогда как данная DLL видит символы,
 // определяемые данным макросом, как экспортированные.
+
 #ifdef FUNCTIONS_EXPORTS
 #define FUNCTIONS_API __declspec(dllexport)
 #else
 #define FUNCTIONS_API __declspec(dllimport)
 #endif
+
+#ifndef FUNCTIONS_H
+#define FUNCTIONS_H
 
 #include <string>
 #include <vector>
@@ -24,44 +28,55 @@
 #include <regex>
 #include <algorithm>
 
-using namespace std;
-
 const std::locale loc = std::locale(std::locale(), new std::codecvt_utf8<wchar_t>);
 
-int wstringDateToInt(wstring str);
+int wstringDateToInt(std::wstring str);
 
 class FUNCTIONS_API Child {
 protected:
-	wstring name;
+	std::wstring name;
 	int cl;
-	vector<pair<double, int>> marks;
+	std::vector<std::pair<double, int>> marks;
 public:
 	Child() {}
 	virtual ~Child() {}
-	virtual void pushMark(int mark, wstring date) {}
-	virtual wstring getName() { return this->name; }
-	virtual const vector<pair<double, int>>& getMarks() const {
+	virtual void pushMark(int mark, std::wstring date) {}
+	virtual std::wstring getName() { return this->name; }
+	virtual const std::vector<std::pair<double, int>>& getMarks() const {
 		return marks;
+	}
+	virtual std::vector<std::pair<double, int>> getDateMarks(int l, int r) {
+		int k = (r - l) / 86399;
+		std::vector<std::pair<double, int>> ans(k);		
+		for (int i = 0; i < this->marks.size(); ++i) {
+			if (marks[i].second >= l && marks[i].second <= r) {
+				ans[(marks[i].second - l) / 86399] = marks[i];
+			}
+		}
+		return ans;
+	}
+	virtual int getClass() {
+		return this->cl;
 	}
 };
 
 class FUNCTIONS_API Student : public Child {
 private:
 public:
-	Student(wstring name, int cl) {
+	Student(std::wstring name, int cl) {
 		this->name = name;
 		this->cl = cl;
 	}
 	~Student() {}
-	void pushMark(int mark, wstring date) {
-		marks.push_back(make_pair(mark, wstringDateToInt(date)));
+	void pushMark(int mark, std::wstring date) {
+		marks.push_back(std::make_pair(mark, wstringDateToInt(date)));
 	}
 };
 
 class FUNCTIONS_API Graduated : public Child {
 private:
 public:
-	Graduated(wstring name, int cl) {
+	Graduated(std::wstring name, int cl) {
 		this->name = name;
 		this->cl = cl;
 	}
@@ -70,44 +85,46 @@ public:
 
 class FUNCTIONS_API DB {
 private:
-	map<int, Child*>* db;
-	map<int, wstring> subject;
-	map<int, wstring> classes;
+	std::map<int, Child*>* db;
+	std::map<int, Child*>* viborka;
+	std::map<int, std::wstring> subject;
+	std::map<int, std::wstring> classes;
 public:
 	DB() {
-		db = new map<int, Child*>;
+		db = new std::map<int, Child*>;
+		viborka = new std::map<int, Child*>;
 		int id, klass;
-		wstring str;
-		wifstream file("subjects.txt");
+		std::wstring str;
+		std::wifstream file("subjects.txt");
 		file.imbue(loc);
-		for (; file.is_open() and !file.eof();) {
+		for (; file.is_open() && !file.eof();) {
 			file >> id >> str;
 			subject[id] = str;
 		}
 		file.close();
-		file = wifstream("classes.txt");
+		file = std::wifstream("classes.txt");
 		file.imbue(loc);
 		for (; file.is_open() && !file.eof();) {
 			file >> id >> str;
 			classes[id] = str;
 		}
 		file.close();
-		file = wifstream("students.txt");
+		file = std::wifstream("students.txt");
 		file.imbue(loc);
 		for (; file.is_open() && !file.eof();) {
 			file >> id >> str >> klass;
 			str = regex_replace(str, std::wregex(L"_"), L" ");
-			db->insert(make_pair(id, new Student(str, klass)));
+			db->insert(std::make_pair(id, new Student(str, klass)));
 		}
 		file.close();
-		file = wifstream("graduated.txt");
+		file = std::wifstream("graduated.txt");
 		file.imbue(loc);
 		for (; file.is_open() && !file.eof();) {
 			file >> id >> str >> klass;
-			db->insert(make_pair(id, new Graduated(str, klass))) ;
+			db->insert(std::make_pair(id, new Graduated(str, klass))) ;
 		}
 		file.close();
-		file = wifstream("marks.txt");
+		file = std::wifstream("marks.txt");
 		for (; file.is_open() && !file.eof();) {
 			file >> id >> klass >> str;
 			(*db)[id]->pushMark(klass, str);
@@ -115,19 +132,34 @@ public:
 		file.close();
 	};
 	~DB() {
-		for (map<int, Child*>::iterator it = db->begin(); it != db->end(); ++it) {
+		for (std::map<int, Child*>::iterator it = db->begin(); it != db->end(); ++it) {
 			delete it->second;
 		}
 		delete db;
 	}
-	const map<int, Child*>& getDb() const {
+	const std::map<int, Child*>& getDb() const {
 		return *db;
 	};
-	const map<int, wstring>& getSubject() const {
+	const std::map<int, std::wstring>& getSubject() const {
 		return subject;
 	};
-	const map<int, wstring>& getClasses() const {
+	const std::map<int, std::wstring>& getClasses() const {
 		return classes;
+	};
+	std::map<int, Child*>& getStudentsFromClass(int cl) {
+		if (cl == 0) {
+			return *db;
+		} else {
+			delete viborka;
+			viborka = new std::map<int, Child*>;
+			for (std::map<int, Child*>::iterator i = db->begin(); i != db->end(); ++i) {
+				if ((*i).second->getClass() == cl) {
+					viborka->insert(std::make_pair((*i).first, (*i).second));
+				}
+			}
+			return *viborka;
+		}
 	};
 };
 
+#endif // !FUNCTIONS_H

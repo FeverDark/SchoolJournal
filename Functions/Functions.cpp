@@ -7,13 +7,13 @@
 
 #define DEBUG_VERSION
 
-int wstringDateToInt(wstring str) {
+int wstringDateToInt(std::wstring str) {
 	tm t{};
-	wistringstream ss(str);
-	ss >> get_time(&t, L"%Y-%m-%d");
-	time_t time_stamp = mktime(&t);
+	std::wistringstream ss(str);
+	ss >> std::get_time(&t, L"%Y-%m-%d");
+	time_t time_stamp = _mkgmtime(&t);
 	#ifdef DEBUG_VERSION
-	ofstream file("debug.txt", ofstream::out);
+	std::ofstream file("debug.txt", std::ofstream::out);
 	file << time_stamp;
 	file.close();
 	#endif
