@@ -176,40 +176,50 @@ DB::DB() {
 	std::wifstream file("subjects.txt");
 	file.imbue(loc);
 	for (; file.is_open() && !file.eof();) {
+		id = NULL;
 		file >> id >> str;
 		str = regex_replace(str, std::wregex(L"_"), L" ");
-		subject[id] = str;
+		if (id != NULL)
+			subject[id] = str;
 	}
 	file.close();
 	file = std::wifstream("classes.txt");
 	file.imbue(loc);
 	for (; file.is_open() && !file.eof();) {
+		id = NULL;
 		file >> id >> str;
-		classes[id] = str;
+		if (id != NULL)
+			classes[id] = str;
 	}
 	file.close();
 	file = std::wifstream("students.txt");
 	file.imbue(loc);
 	for (; file.is_open() && !file.eof();) {
+		id = NULL;
 		file >> id >> str >> klass;
 		str = regex_replace(str, std::wregex(L"_"), L" ");
-		db->insert(std::make_pair(id, new Student(str, klass)));
+		if (id != NULL)
+			db->insert(std::make_pair(id, new Student(str, klass)));
 	}
 	file.close();
 	file = std::wifstream("graduated.txt");
 	file.imbue(loc);
 	for (; file.is_open() && !file.eof();) {
+		id = NULL;
 		double mark;
 		file >> id >> str >> klass >> mark;
 		str = regex_replace(str, std::wregex(L"_"), L" ");
-		db->insert(std::make_pair(id, new Graduated(str, klass, mark)));
+		if (id != NULL)
+			db->insert(std::make_pair(id, new Graduated(str, klass, mark)));
 	}
 	file.close();
 	file = std::wifstream("marks.txt");
 	for (; file.is_open() && !file.eof();) {
+		id = NULL;
 		int subject;
 		file >> id >> klass >> str >> subject;
-		(*db)[id]->pushMark(klass, str, subject);
+		if(id != NULL)
+			(*db)[id]->pushMark(klass, str, subject);
 	}
 	file.close();
 };
