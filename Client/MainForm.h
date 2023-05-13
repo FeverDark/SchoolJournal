@@ -142,7 +142,7 @@ namespace Client {
 			// 
 			// button1
 			// 
-			this->button1->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom));
+			this->button1->Anchor = System::Windows::Forms::AnchorStyles::Top;
 			this->button1->Location = System::Drawing::Point(698, 24);
 			this->button1->Name = L"button1";
 			this->button1->Size = System::Drawing::Size(90, 23);
@@ -153,6 +153,7 @@ namespace Client {
 			// 
 			// comboBox2
 			// 
+			this->comboBox2->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom));
 			this->comboBox2->FormattingEnabled = true;
 			this->comboBox2->Location = System::Drawing::Point(420, 27);
 			this->comboBox2->Name = L"comboBox2";
@@ -162,6 +163,7 @@ namespace Client {
 			// 
 			// label1
 			// 
+			this->label1->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom));
 			this->label1->AutoSize = true;
 			this->label1->Location = System::Drawing::Point(27, 20);
 			this->label1->Name = L"label1";
@@ -171,6 +173,7 @@ namespace Client {
 			// 
 			// label2
 			// 
+			this->label2->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom));
 			this->label2->AutoSize = true;
 			this->label2->Location = System::Drawing::Point(27, 46);
 			this->label2->Name = L"label2";
@@ -180,6 +183,7 @@ namespace Client {
 			// 
 			// label3
 			// 
+			this->label3->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom));
 			this->label3->AutoSize = true;
 			this->label3->Location = System::Drawing::Point(213, 30);
 			this->label3->Name = L"label3";
@@ -189,6 +193,7 @@ namespace Client {
 			// 
 			// label4
 			// 
+			this->label4->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom));
 			this->label4->AutoSize = true;
 			this->label4->Location = System::Drawing::Point(362, 29);
 			this->label4->Name = L"label4";
@@ -198,6 +203,7 @@ namespace Client {
 			// 
 			// label5
 			// 
+			this->label5->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom));
 			this->label5->AutoSize = true;
 			this->label5->Location = System::Drawing::Point(540, 29);
 			this->label5->Name = L"label5";
