@@ -46,6 +46,21 @@ void Child::getDateMarks(std::vector<std::pair<double, int>>& ans, int l, int r,
 		}
 	}
 }
+void Child::getDateMassMarks(double* (&mark), int* (&ti), int l, int r, int subject) {
+	int k = (r - l) / 86399;
+	mark = new double[k];
+	ti = new int[k];
+	for (int i = 0; i < k; ++i) {
+		mark[i] = 0;
+		ti[i] = 0;
+	}
+	for (int i = 0; i < this->marks.size(); ++i) {
+		if (marks[i].time >= l && marks[i].time <= r && marks[i].subject == subject) {
+			mark[(marks[i].time - l) / 86399] = marks[i].mark;
+			ti[(marks[i].time - l) / 86399] = marks[i].time;
+		}
+	}
+}
 int Child::getClass() {
 	return this->cl;
 }
@@ -393,12 +408,32 @@ std::vector<std::wstring> Gasket::getClasses() {
 	}
 	return a;
 }
+void Gasket::getMassClasses(int& size, wchar_t**(&str)) {
+	size = db->classes.size();
+	str = new wchar_t*[size];
+	int j = 0;
+	for (std::map<int, std::wstring>::const_iterator i = db->classes.begin(); i != db->classes.end(); ++i) {
+		str[j] = new wchar_t[1024];
+		wcscpy_s(str[j], 1024, (*i).second.c_str());
+		j++;
+	}
+}
 std::vector<std::wstring> Gasket::getSubject() {
 	std::vector<std::wstring> a;
 	for (std::map<int, std::wstring>::const_iterator i = db->subject.begin(); i != db->subject.end(); ++i) {
 		a.push_back((*i).second);
 	}
 	return a;
+}
+void Gasket::getMassSubject(int& size, wchar_t** (&str)) {
+	size = db->classes.size();
+	str = new wchar_t* [size];
+	int j = 0;
+	for (std::map<int, std::wstring>::const_iterator i = db->classes.begin(); i != db->classes.end(); ++i) {
+		str[j] = new wchar_t[1024];
+		wcscpy_s(str[j], 1024, (*i).second.c_str());
+		j++;
+	}
 }
 std::vector<Child*> Gasket::getGraduated() {
 	std::map<int, Child*> a = db->getGraduated();
@@ -408,6 +443,16 @@ std::vector<Child*> Gasket::getGraduated() {
 	}
 	return b;
 }
+void Gasket::getMassGraduated(int& size, Child** (&mass)) {
+	std::map<int, Child*> a = db->getGraduated();
+	mass = new Child * [a.size()];
+	int j = 0;
+	for (std::map<int, Child*>::const_iterator i = a.begin(); i != a.end(); ++i) {
+		mass[j] = (*i).second;
+		j++;
+	}
+	size = a.size();
+}
 std::vector<Child*> Gasket::getStudentsFromClass(int cl, std::wstring finder) {
 	std::map<int, Child*> a = db->getStudentsFromClass(cl, finder);
 	std::vector<Child*> b;
@@ -415,6 +460,16 @@ std::vector<Child*> Gasket::getStudentsFromClass(int cl, std::wstring finder) {
 		b.push_back((*i).second);
 	}
 	return b;
+}
+void Gasket::getStudentsFromClassToMass(int& size, Child**(&mass), int cl, std::wstring finder) {
+	std::map<int, Child*> a = db->getStudentsFromClass(cl, finder);
+	mass = new Child*[a.size()];
+	int j = 0;
+	for (std::map<int, Child*>::const_iterator i = a.begin(); i != a.end(); ++i) {
+		mass[j] = (*i).second;
+		j++;
+	}
+	size = a.size();
 }
 void Gasket::deleteMark(std::wstring name, int t, int subject) {
 	db->deleteMark(name, t, subject);
@@ -424,4 +479,16 @@ void Gasket::changeMark(std::wstring name, int mark, int t, int subject) {
 }
 void Gasket::medalStudents(std::multiset<Child*, CompSet>& all) {
 	db->medalStudents(all);
+}
+
+void Gasket::medalMassStudents(int& size, Child** (&mass)) {
+	std::multiset<Child*, CompSet> all;
+	db->medalStudents(all);
+	size = all.size();
+	mass = new Child * [size];
+	int j = 0;
+	for (std::multiset<Child*, CompSet>::iterator i = all.begin(); i != all.end(); ++i) {
+		mass[j] = (*i);
+		j++;
+	}
 }

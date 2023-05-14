@@ -26,19 +26,21 @@ namespace Client {
 			c->Name = "Column" + (dataGridView1->ColumnCount + 1);
 			c->CellTemplate = td;
 			dataGridView1->Columns->Add(c);
-			multiset<Child*, CompSet> alpha;
-			maindb.medalStudents(alpha);
-			for (multiset<Child*>::const_iterator i = alpha.begin(); i != alpha.end(); ++i) {
+			Child** alpha;
+			int size = 0;
+			maindb.medalMassStudents(size, alpha);
+			for (int i = 0; i < size; ++i) {
 				DataGridViewRow^ r = gcnew DataGridViewRow();
-				r->HeaderCell->Value = msclr::interop::marshal_as<String^>((*i)->getName());
+				r->HeaderCell->Value = msclr::interop::marshal_as<String^>(alpha[i]->getName());
 				r->ReadOnly = 1;
 				r->CreateCells(dataGridView1);
 				cli::array<String^>^ Values = gcnew cli::array<String^>(dataGridView1->ColumnCount);
-				Values[0] = (*i)->getMark().ToString();
+				Values[0] = alpha[i]->getMark().ToString();
 				r->SetValues(Values);
 				dataGridView1->Rows->Add(r);
 				dataGridView1->RowHeadersWidth = 250;
 			}
+			delete alpha;
 		}
 
 	protected:

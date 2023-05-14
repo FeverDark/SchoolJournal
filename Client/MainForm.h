@@ -236,22 +236,35 @@ namespace Client {
 		}
 #pragma endregion
 	private: System::Void MainForm_Load(System::Object^ sender, System::EventArgs^ e) {
-		vector<std::wstring>  classlist = gasket->getClasses();
+		wchar_t** classlist;
+		int size = 0;
+		gasket->getMassClasses(size, classlist);
 		comboBox1->Items->Add("Все ученики");
 		comboBox1->SelectedIndex = 0;
-		for (vector<std::wstring>::iterator i = classlist.begin(); i != classlist.end(); ++i) {
-			comboBox1->Items->Add(msclr::interop::marshal_as<String^>(*i));
+		for (int i = 0; i < size; ++i) {
+			comboBox1->Items->Add(msclr::interop::marshal_as<String^>(classlist[i]));
 		}
 		comboBox1->Items->Add("Выпустившиеся");
 		comboBox1->Refresh();
-		vector<std::wstring> sublist = gasket->getSubject();
-		for(vector<std::wstring>::iterator i = sublist.begin(); i != sublist.end(); ++i){
-			comboBox2->Items->Add(msclr::interop::marshal_as<String^>(*i));
+		for (int i = 0; i < size; ++i) {
+			delete classlist[i];
+		}
+		delete classlist;
+		wchar_t** sublist;
+		size = 0;
+		gasket->getMassSubject(size, sublist);
+		for (int i = 0; i < size; ++i) {
+			comboBox2->Items->Add(msclr::interop::marshal_as<String^>(sublist[i]));
 		}
 		comboBox2->SelectedIndex = 0;
 		comboBox2->Refresh();
 		dateTimePicker_ValueChanged(dataGridView1, gcnew EventArgs());
 		MainForm::Update();
+		for (int i = 0; i < size; ++i) {
+			delete sublist[i];
+		}
+		delete sublist;
+		
 	}
 	private: System::Void MainForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
 	
@@ -266,18 +279,21 @@ namespace Client {
 			c->Name = "Column" + (dataGridView1->ColumnCount + 1);
 			c->CellTemplate = td;
 			dataGridView1->Columns->Add(c);
-			vector<Child*> students = gasket->getGraduated();
-			for (vector<Child*>::iterator i = students.begin(); i != students.end(); ++i) {
+			Child** students;
+			int size = 0;
+			gasket->getMassGraduated(size, students);
+			for (int i = 0; i < size; ++i) {
 				DataGridViewRow^ r = gcnew DataGridViewRow();
-				r->HeaderCell->Value = msclr::interop::marshal_as<String^>((*i)->getName());
+				r->HeaderCell->Value = msclr::interop::marshal_as<String^>(students[i]->getName());
 				r->ReadOnly = 1;
 				r->CreateCells(dataGridView1);
 				cli::array<String^>^ Values = gcnew cli::array<String^>(dataGridView1->ColumnCount);
-				Values[0] = (*i)->getMark().ToString();
+				Values[0] = students[i]->getMark().ToString();
 				r->SetValues(Values);
 				dataGridView1->Rows->Add(r);
 				dataGridView1->RowHeadersWidth = 250;
 			}
+			delete students;
 		}
 		else {
 			DateTime ld, rd;
@@ -298,10 +314,12 @@ namespace Client {
 				c->Name = "Column" + (dataGridView1->ColumnCount + 1);
 				c->CellTemplate = td;
 				dataGridView1->Columns->Add(c);
-				vector<Child*> students = gasket->getStudentsFromClass(selectedclass, msclr::interop::marshal_as<wstring>(finder->ToString()));
-				for (vector<Child*>::iterator i = students.begin(); i != students.end(); ++i) {
+				Child** students; 
+				int size = 0;
+				gasket->getStudentsFromClassToMass(size, students, selectedclass, msclr::interop::marshal_as<wstring>(finder->ToString()));
+				for (int i = 0; i < size; ++i) {
 					DataGridViewRow^ r = gcnew DataGridViewRow();
-					r->HeaderCell->Value = msclr::interop::marshal_as<String^>((*i)->getName());
+					r->HeaderCell->Value = msclr::interop::marshal_as<String^>(students[i]->getName());
 					r->CreateCells(dataGridView1);
 					cli::array<String^>^ Values = gcnew cli::array<String^>(dataGridView1->ColumnCount);
 					for (int j = 0; j < dataGridView1->ColumnCount; j++) {
@@ -323,23 +341,28 @@ namespace Client {
 						q.tm_mon = dt.Month - 1;
 						q.tm_mday = dt.Day;
 						time_t t2 = _mkgmtime(&q);
-						vector<pair<double, int>> temp((t2 + 86399 - t1) / 86399);
-						(*i)->getDateMarks(temp, t1, t2 + 86399, selectedsubject + 1);
+						int size = (t2 + 86399 - t1) / 86399;
+						double* mark;
+						int* ti;
+						students[i]->getDateMassMarks(mark, ti, t1, t2 + 86399, selectedsubject + 1);
 						double sum = 0;
 						int count = 0;
-						for (int k = 0; k < temp.size(); ++k) {
-							Values[k] = temp[k].second == 0 ? L"" : temp[k].first.ToString();
-							if (temp[k].second != 0) {
-								sum += temp[k].first;
+						for (int k = 0; k < size; ++k) {
+							Values[k] = (ti[k] == 0) ? L"" : mark[k].ToString();
+							if (ti[k] != 0) {
+								sum += mark[k];
 								count++;
 							}
 						}
-						Values[temp.size()] = sum == 0 ? L"" : (round(sum / count * 100) / 100).ToString();
+						Values[size] = sum == 0 ? L"" : (round(sum / count * 100) / 100).ToString();
+						delete mark;
+						delete ti;
 					}
 					r->SetValues(Values);
 					dataGridView1->Rows->Add(r);
 					dataGridView1->RowHeadersWidth = 200;
 				}
+				delete students;
 			}
 		}
 	}

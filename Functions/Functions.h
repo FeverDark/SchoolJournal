@@ -53,6 +53,7 @@ public:
 	virtual std::wstring getName();
 	virtual const std::vector<Mark>& getMarks() const;
 	virtual void getDateMarks(std::vector<std::pair<double, int>>& ans, int l, int r, int subject);
+	virtual void getDateMassMarks(double* (&mark), int* (&ti), int l, int r, int subject);
 	virtual int getClass();
 	virtual void deleteMark(int t, int subject);
 	virtual void changeMark(int t, int mark, int subject);
@@ -126,12 +127,17 @@ public:
 	~Gasket();
 	DB* db;
 	std::vector<std::wstring> getClasses();
+	void getMassClasses(int& size, wchar_t** (&str));
 	std::vector<std::wstring> getSubject();
+	void getMassSubject(int& size, wchar_t** (&str));
 	std::vector<Child*> getGraduated();
+	void getMassGraduated(int& size, Child** (&mass));
 	std::vector<Child*> getStudentsFromClass(int cl, std::wstring finder);
+	void getStudentsFromClassToMass(int& size, Child** (&mass), int cl, std::wstring finder);
 	void deleteMark(std::wstring name, int t, int subject);
 	void changeMark(std::wstring name, int mark, int t, int subject);
 	void medalStudents(std::multiset<Child*, CompSet>& all);
+	void medalMassStudents(int& size, Child** (&mass));
 };
 
 #endif // !FUNCTIONS_H
