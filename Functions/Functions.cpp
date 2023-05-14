@@ -38,15 +38,13 @@ std::wstring Child::getName() { return this->name; }
 const std::vector<Mark>& Child::getMarks() const {
 	return marks;
 }
-std::vector<std::pair<double, int>> Child::getDateMarks(int l, int r, int subject) {
+void Child::getDateMarks(std::vector<std::pair<double, int>>& ans, int l, int r, int subject) {
 	int k = (r - l) / 86399;
-	std::vector<std::pair<double, int>> ans(k);
 	for (int i = 0; i < this->marks.size(); ++i) {
 		if (marks[i].time >= l && marks[i].time <= r && marks[i].subject == subject) {
 			ans[(marks[i].time - l) / 86399] = std::make_pair(marks[i].mark, marks[i].time);
 		}
 	}
-	return ans;
 }
 int Child::getClass() {
 	return this->cl;

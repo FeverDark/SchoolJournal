@@ -323,7 +323,8 @@ namespace Client {
 						q.tm_mon = dt.Month - 1;
 						q.tm_mday = dt.Day;
 						time_t t2 = _mkgmtime(&q);
-						vector<pair<double, int>> temp = (*i)->getDateMarks(t1, t2 + 86399, selectedsubject + 1);
+						vector<pair<double, int>> temp((t2 + 86399 - t1) / 86399);
+						(*i)->getDateMarks(temp, t1, t2 + 86399, selectedsubject + 1);
 						double sum = 0;
 						int count = 0;
 						for (int k = 0; k < temp.size(); ++k) {

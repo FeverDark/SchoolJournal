@@ -52,7 +52,7 @@ public:
 	virtual void pushMark(int mark, std::wstring date, int subject);
 	virtual std::wstring getName();
 	virtual const std::vector<Mark>& getMarks() const;
-	virtual std::vector<std::pair<double, int>> getDateMarks(int l, int r, int subject);
+	virtual void getDateMarks(std::vector<std::pair<double, int>>& ans, int l, int r, int subject);
 	virtual int getClass();
 	virtual void deleteMark(int t, int subject);
 	virtual void changeMark(int t, int mark, int subject);
