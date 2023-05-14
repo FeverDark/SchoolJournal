@@ -1,10 +1,9 @@
 #pragma once
 #include "BestStudentsForm.h"
-#include "Functions.h"
-#include <msclr\marshal_cppstd.h>
 
 namespace Client {
 
+	using namespace std;
 	using namespace System;
 	using namespace System::ComponentModel;
 	using namespace System::Collections;
@@ -20,8 +19,8 @@ namespace Client {
 	public:
 		MainForm(void)
 		{
+			gasket = Gasket::getInstance();
 			InitializeComponent();
-			maindb = new DB();
 			//
 			//TODO: добавьте код конструктора
 			//
@@ -33,19 +32,18 @@ namespace Client {
 		/// </summary>
 		~MainForm()
 		{
-			delete maindb;
 			if (components)
 			{
 				delete components;
 			}
+			delete gasket;
 		}
 	private: System::Windows::Forms::DateTimePicker^ dateTimePicker1;
 	protected:
 	private: System::Windows::Forms::DateTimePicker^ dateTimePicker2;
 	private: System::Windows::Forms::DataGridView^ dataGridView1;
-
 	protected:
-	private: DB* maindb;
+	private: Gasket* gasket;
 	private: int selectedclass = 0;
 	private: int selectedsubject = 0;
 	private: String^ finder = L"";
@@ -238,17 +236,17 @@ namespace Client {
 		}
 #pragma endregion
 	private: System::Void MainForm_Load(System::Object^ sender, System::EventArgs^ e) {
-		std::map<int, std::wstring> classlist = maindb->getClasses();
+		vector<std::wstring>  classlist = gasket->getClasses();
 		comboBox1->Items->Add("Все ученики");
 		comboBox1->SelectedIndex = 0;
-		for (std::map<int, std::wstring>::const_iterator i = classlist.begin(); i != classlist.end(); ++i) {
-			comboBox1->Items->Add(msclr::interop::marshal_as<String^>((*i).second));
+		for (vector<std::wstring>::iterator i = classlist.begin(); i != classlist.end(); ++i) {
+			comboBox1->Items->Add(msclr::interop::marshal_as<String^>(*i));
 		}
-		//comboBox1->Items->Add("Выпустившиеся");
+		comboBox1->Items->Add("Выпустившиеся");
 		comboBox1->Refresh();
-		std::map<int, std::wstring> sublist = maindb->getSubject();
-				for (std::map<int, std::wstring>::const_iterator i = sublist.begin(); i != sublist.end(); ++i) {
-			comboBox2->Items->Add(msclr::interop::marshal_as<String^>((*i).second));
+		vector<std::wstring> sublist = gasket->getSubject();
+		for(vector<std::wstring>::iterator i = sublist.begin(); i != sublist.end(); ++i){
+			comboBox2->Items->Add(msclr::interop::marshal_as<String^>(*i));
 		}
 		comboBox2->SelectedIndex = 0;
 		comboBox2->Refresh();
@@ -268,14 +266,14 @@ namespace Client {
 			c->Name = "Column" + (dataGridView1->ColumnCount + 1);
 			c->CellTemplate = td;
 			dataGridView1->Columns->Add(c);
-			std::map<int, Child*> students = maindb->getGraduated();
-			for (std::map<int, Child*>::const_iterator i = students.begin(); i != students.end(); ++i) {
+			vector<Child*> students = gasket->getGraduated();
+			for (vector<Child*>::iterator i = students.begin(); i != students.end(); ++i) {
 				DataGridViewRow^ r = gcnew DataGridViewRow();
-				r->HeaderCell->Value = msclr::interop::marshal_as<String^>(i->second->getName());
+				r->HeaderCell->Value = msclr::interop::marshal_as<String^>((*i)->getName());
 				r->ReadOnly = 1;
 				r->CreateCells(dataGridView1);
-				array<String^>^ Values = gcnew array<String^>(dataGridView1->ColumnCount);
-				Values[0] = (*i).second->getMark().ToString();
+				cli::array<String^>^ Values = gcnew cli::array<String^>(dataGridView1->ColumnCount);
+				Values[0] = (*i)->getMark().ToString();
 				r->SetValues(Values);
 				dataGridView1->Rows->Add(r);
 				dataGridView1->RowHeadersWidth = 250;
@@ -300,12 +298,12 @@ namespace Client {
 				c->Name = "Column" + (dataGridView1->ColumnCount + 1);
 				c->CellTemplate = td;
 				dataGridView1->Columns->Add(c);
-				std::map<int, Child*> students = maindb->getStudentsFromClass(selectedclass, msclr::interop::marshal_as<std::wstring>(finder->ToString()));
-				for (std::map<int, Child*>::const_iterator i = students.begin(); i != students.end(); ++i) {
+				vector<Child*> students = gasket->getStudentsFromClass(selectedclass, msclr::interop::marshal_as<wstring>(finder->ToString()));
+				for (vector<Child*>::iterator i = students.begin(); i != students.end(); ++i) {
 					DataGridViewRow^ r = gcnew DataGridViewRow();
-					r->HeaderCell->Value = msclr::interop::marshal_as<String^>(i->second->getName());
+					r->HeaderCell->Value = msclr::interop::marshal_as<String^>((*i)->getName());
 					r->CreateCells(dataGridView1);
-					array<String^>^ Values = gcnew array<String^>(dataGridView1->ColumnCount);
+					cli::array<String^>^ Values = gcnew cli::array<String^>(dataGridView1->ColumnCount);
 					for (int j = 0; j < dataGridView1->ColumnCount; j++) {
 						DateTime dt = ld;
 						tm q = { 0 };
@@ -325,13 +323,13 @@ namespace Client {
 						q.tm_mon = dt.Month - 1;
 						q.tm_mday = dt.Day;
 						time_t t2 = _mkgmtime(&q);
-						std::vector<std::pair<double, int>> temp = (*i).second->getDateMarks(t1, t2 + 86399, selectedsubject + 1);
+						vector<pair<double, int>> temp = (*i)->getDateMarks(t1, t2 + 86399, selectedsubject + 1);
 						double sum = 0;
 						int count = 0;
-						for (int i = 0; i < temp.size(); ++i) {
-							Values[i] = temp[i].second == 0 ? L"" : temp[i].first.ToString();
-							if (temp[i].second != 0) {
-								sum += temp[i].first;
+						for (int k = 0; k < temp.size(); ++k) {
+							Values[k] = temp[k].second == 0 ? L"" : temp[k].first.ToString();
+							if (temp[k].second != 0) {
+								sum += temp[k].first;
 								count++;
 							}
 						}
@@ -357,7 +355,7 @@ namespace Client {
 		dateTimePicker_ValueChanged(dataGridView1, gcnew EventArgs());
 	}
 	private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {
-		Client::BestStudentsForm best(*maindb);
+		Client::BestStudentsForm best(*gasket);
 		best.ShowDialog();
 	}
 
@@ -373,7 +371,7 @@ namespace Client {
 		time_t t = _mkgmtime(&q);
 		t += 86400 * e->ColumnIndex;
 		if (this->dataGridView1->Rows[e->RowIndex]->Cells[e->ColumnIndex]->Value == nullptr) {
-			maindb->deleteMark(msclr::interop::marshal_as<std::wstring>(this->dataGridView1->Rows[e->RowIndex]->HeaderCell->Value->ToString()), t, selectedsubject + 1);
+			gasket->deleteMark(msclr::interop::marshal_as<std::wstring>(this->dataGridView1->Rows[e->RowIndex]->HeaderCell->Value->ToString()), t, selectedsubject + 1);
 			dateTimePicker_ValueChanged(dataGridView1, gcnew EventArgs());
 		}
 		else {
@@ -381,7 +379,7 @@ namespace Client {
 				System::Int32^ tryint;
 				tryint = System::Convert::ToInt32(this->dataGridView1->Rows[e->RowIndex]->Cells[e->ColumnIndex]->Value);
 				if (*tryint >= 1 && *tryint <= 5) {
-					maindb->changeMark(msclr::interop::marshal_as<std::wstring>(this->dataGridView1->Rows[e->RowIndex]->HeaderCell->Value->ToString()), static_cast<int>(tryint), t, selectedsubject + 1);
+					gasket->changeMark(msclr::interop::marshal_as<std::wstring>(this->dataGridView1->Rows[e->RowIndex]->HeaderCell->Value->ToString()), static_cast<int>(tryint), t, selectedsubject + 1);
 					dateTimePicker_ValueChanged(dataGridView1, gcnew EventArgs());
 				}
 				else {

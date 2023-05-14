@@ -5,14 +5,14 @@
 // функции FUNCTIONS_API как импортированные из DLL, тогда как данная DLL видит символы,
 // определяемые данным макросом, как экспортированные.
 
+#ifndef FUNCTIONS_H
+#define FUNCTIONS_H
+
 #ifdef FUNCTIONS_EXPORTS
 #define FUNCTIONS_API __declspec(dllexport)
 #else
 #define FUNCTIONS_API __declspec(dllimport)
 #endif
-
-#ifndef FUNCTIONS_H
-#define FUNCTIONS_H
 
 #include <string>
 #include <vector>
@@ -32,7 +32,7 @@
 int wstringDateToInt(std::wstring str);
 std::wstring intDateToWstring(int t);
 
-struct Mark {
+struct FUNCTIONS_API Mark {
 	double mark;
 	int time;
 	int subject;
@@ -90,19 +90,20 @@ struct Comp
 	bool operator()(double i, Child* s);
 };
 
-struct CompSet {
+struct FUNCTIONS_API CompSet {
 	bool operator() (Child* a, Child* b) const;
 };
 
-class FUNCTIONS_API DB {
-private:
+class DB {
+public:
 	std::map<int, Child*>* db;
 	std::map<int, Child*>* viborka;
 	std::map<int, std::wstring> subject;
 	std::map<int, std::wstring> classes;
-public:
 	DB();
 	~DB();
+	DB(const DB& temp);
+	DB& operator=(const DB& temp);
 	const std::map<int, Child*>& getDb() const;
 	const std::map<int, std::wstring>& getSubject() const;
 	const std::map<int, std::wstring>& getClasses() const;
@@ -112,6 +113,25 @@ public:
 	void changeMark(std::wstring name, int mark, int t, int subject);
 	void medalStudents(std::multiset<Child*, CompSet>& all);
 	void saveFiles();
+};
+
+class FUNCTIONS_API Gasket {
+private:
+	static Gasket* instance;
+	Gasket();
+	Gasket(const Gasket&);
+	Gasket& operator=(Gasket&);
+public:
+	static Gasket* getInstance();
+	~Gasket();
+	DB* db;
+	std::vector<std::wstring> getClasses();
+	std::vector<std::wstring> getSubject();
+	std::vector<Child*> getGraduated();
+	std::vector<Child*> getStudentsFromClass(int cl, std::wstring finder);
+	void deleteMark(std::wstring name, int t, int subject);
+	void changeMark(std::wstring name, int mark, int t, int subject);
+	void medalStudents(std::multiset<Child*, CompSet>& all);
 };
 
 #endif // !FUNCTIONS_H

@@ -251,6 +251,44 @@ const std::map<int, Child*>& DB::getStudentsFromClass(int cl, std::wstring finde
 	}
 	return *viborka;
 };
+DB::DB(const DB& temp) {
+	db = new std::map<int, Child*>;
+	viborka = new std::map<int, Child*>;
+	for (std::map<int, std::wstring>::const_iterator i = temp.classes.begin(); i != temp.classes.end(); ++i) {
+		classes.insert(std::make_pair(i->first, i->second));
+	}
+	for (std::map<int, std::wstring>::const_iterator i = temp.subject.begin(); i != temp.subject.end(); ++i) {
+		subject.insert(std::make_pair(i->first, i->second));
+	}
+	for (std::map<int, Child*>::const_iterator i = temp.db->begin(); i != temp.db->end(); ++i) {
+		db->insert(std::make_pair(i->first, i->second->copy()));
+	}
+};
+DB& DB::operator=(const DB& temp) {
+	if (this != &temp) {
+		for (std::map<int, Child*>::const_iterator it = db->begin(); it != db->end(); ++it) {
+			delete it->second;
+		}
+		classes.clear();
+		subject.clear();
+		db->clear();
+		viborka->clear();
+		delete db;
+		delete viborka;
+		db = new std::map<int, Child*>;
+		viborka = new std::map<int, Child*>;
+		for (std::map<int, std::wstring>::const_iterator i = temp.classes.begin(); i != temp.classes.end(); ++i) {
+			classes.insert(std::make_pair(i->first, i->second));
+		}
+		for (std::map<int, std::wstring>::const_iterator i = temp.subject.begin(); i != temp.subject.end(); ++i) {
+			subject.insert(std::make_pair(i->first, i->second));
+		}
+		for (std::map<int, Child*>::const_iterator i = temp.db->begin(); i != temp.db->end(); ++i) {
+			db->insert(std::make_pair(i->first, i->second->copy()));
+		}
+	}
+	return *this;
+};
 const std::map<int, Child*>& DB::getGraduated() {
 	viborka->clear();
 	delete viborka;
@@ -333,4 +371,59 @@ void DB::saveFiles() {
 		}
 	}
 	file.close();
+}
+
+Gasket::Gasket() {
+	db = new DB();
+}
+
+Gasket* Gasket::getInstance() {
+	if (!instance)
+		instance = new Gasket();
+	return instance;
+}
+Gasket::~Gasket() {
+	delete db;
+};
+
+Gasket* Gasket::instance = 0;
+
+std::vector<std::wstring> Gasket::getClasses() {
+	std::vector<std::wstring> a;
+	for (std::map<int, std::wstring>::const_iterator i = db->classes.begin(); i != db->classes.end(); ++i) {
+		a.push_back((*i).second);
+	}
+	return a;
+}
+std::vector<std::wstring> Gasket::getSubject() {
+	std::vector<std::wstring> a;
+	for (std::map<int, std::wstring>::const_iterator i = db->subject.begin(); i != db->subject.end(); ++i) {
+		a.push_back((*i).second);
+	}
+	return a;
+}
+std::vector<Child*> Gasket::getGraduated() {
+	std::map<int, Child*> a = db->getGraduated();
+	std::vector<Child*> b;
+	for (std::map<int, Child*>::const_iterator i = a.begin(); i != a.end(); ++i) {
+		b.push_back((*i).second);
+	}
+	return b;
+}
+std::vector<Child*> Gasket::getStudentsFromClass(int cl, std::wstring finder) {
+	std::map<int, Child*> a = db->getStudentsFromClass(cl, finder);
+	std::vector<Child*> b;
+	for (std::map<int, Child*>::const_iterator i = a.begin(); i != a.end(); ++i) {
+		b.push_back((*i).second);
+	}
+	return b;
+}
+void Gasket::deleteMark(std::wstring name, int t, int subject) {
+	db->deleteMark(name, t, subject);
+}
+void Gasket::changeMark(std::wstring name, int mark, int t, int subject) {
+	db->changeMark(name, mark, t, subject);
+}
+void Gasket::medalStudents(std::multiset<Child*, CompSet>& all) {
+	db->medalStudents(all);
 }

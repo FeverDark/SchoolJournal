@@ -3,7 +3,7 @@
 #include <msclr\marshal_cppstd.h>
 
 namespace Client {
-
+	using namespace std;
 	using namespace System;
 	using namespace System::ComponentModel;
 	using namespace System::Collections;
@@ -17,7 +17,7 @@ namespace Client {
 	public ref class BestStudentsForm : public System::Windows::Forms::Form
 	{
 	public:
-		BestStudentsForm(DB& maindb)
+		BestStudentsForm(Gasket& maindb)
 		{
 			InitializeComponent();
 			DataGridViewColumn^ c = gcnew DataGridViewColumn();
@@ -26,14 +26,14 @@ namespace Client {
 			c->Name = "Column" + (dataGridView1->ColumnCount + 1);
 			c->CellTemplate = td;
 			dataGridView1->Columns->Add(c);
-			std::multiset<Child*, CompSet> alpha;
+			multiset<Child*, CompSet> alpha;
 			maindb.medalStudents(alpha);
-			for (std::multiset<Child*>::const_iterator i = alpha.begin(); i != alpha.end(); ++i) {
+			for (multiset<Child*>::const_iterator i = alpha.begin(); i != alpha.end(); ++i) {
 				DataGridViewRow^ r = gcnew DataGridViewRow();
 				r->HeaderCell->Value = msclr::interop::marshal_as<String^>((*i)->getName());
 				r->ReadOnly = 1;
 				r->CreateCells(dataGridView1);
-				array<String^>^ Values = gcnew array<String^>(dataGridView1->ColumnCount);
+				cli::array<String^>^ Values = gcnew cli::array<String^>(dataGridView1->ColumnCount);
 				Values[0] = (*i)->getMark().ToString();
 				r->SetValues(Values);
 				dataGridView1->Rows->Add(r);
@@ -54,7 +54,6 @@ namespace Client {
 		}
 	private: System::Windows::Forms::DataGridView^ dataGridView1;
 	protected:
-	private: std::multiset<Child*> *all;
 	private:
 		/// <summary>
 		/// Обязательная переменная конструктора.
